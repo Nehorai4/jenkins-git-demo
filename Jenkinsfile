@@ -24,6 +24,11 @@ pipeline {
                 }
             }
         }
+        stage('Approve') {
+            steps {
+                input message: "Do you want to continue, ${env.MY_NAME}?", ok: 'Yes'
+            }
+        }
         stage('Create File') {
             steps {
                 sh 'echo "File created by ${MY_NAME}" > demo.txt'
