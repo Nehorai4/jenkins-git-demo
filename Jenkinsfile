@@ -1,14 +1,18 @@
 pipeline {
     agent any
+    environment {
+        MY_NAME = 'Nehorai'
+    }
     stages {
         stage('Say Hello') {
             steps {
-                echo 'Hello from Git!'
+                echo "Hello, ${env.MY_NAME} from Git!"
             }
         }
-        stage('Say Goodbye') {
+        stage('Create File') {
             steps {
-                echo 'Goodbye from Git!'
+                sh 'echo "File created by ${MY_NAME}" > demo.txt'
+                archiveArtifacts artifacts: 'demo.txt', allowEmptyArchive: true
             }
         }
     }
