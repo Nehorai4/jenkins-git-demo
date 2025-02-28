@@ -6,5 +6,10 @@ pipeline {
                 echo 'Hello from Git!'
             }
         }
+        stage('Say Goodbye') {
+            steps {
+                echo 'Goodbye from Git!'
+            }
+        }
     }
 }
