@@ -2,7 +2,7 @@ pipeline {
     agent any
     environment {
         MY_NAME = 'Nehorai'
-        IS_DEBUG = 'true'  // משתנה שקובע אם אנחנו במצב דיבאג
+        IS_DEBUG = 'true'
     }
     stages {
         stage('Say Hello') {
@@ -13,6 +13,14 @@ pipeline {
                     } else {
                         echo "Hello, ${env.MY_NAME}! Debug mode is OFF."
                     }
+                }
+            }
+        }
+        stage('Get Last Commit') {
+            steps {
+                script {
+                    def commitMsg = sh(script: 'git log -1 --pretty=%B', returnStdout: true).trim()
+                    echo "Last commit message: ${commitMsg}"
                 }
             }
         }
