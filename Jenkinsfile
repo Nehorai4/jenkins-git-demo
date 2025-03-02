@@ -2,23 +2,23 @@ pipeline {
     agent any
 
     environment {
-        PYTHON_VERSIONS = '3.8 3.9'  // Array של גרסאות Python לבדיקה ובנייה
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')  // DockerHub credentials מתוך Jenkins
-        REPO_NAME = 'nehorai4/python-faker'  // שם ה-Repository שלך ב-DockerHub (תתאים לפי השם שלך)
+        PYTHON_VERSIONS = '3.8 3.9'
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
+        REPO_NAME = 'nehorai4/python-faker'
     }
 
     stages {
         stage('Clone') {
             steps {
-                git branch: 'main', url: 'https://github.com/Nehorai4/jenkins-git-demo.git'  // Repository שלך
+                git branch: 'main', url: 'https://github.com/Nehorai4/jenkins-git-demo.git'
             }
         }
 
         stage('Install Dependencies') {
             agent {
                 docker {
-                    image 'python:3.9'  // תמונת Python בסיסית להתקנת תלויות
-                    args '-v $HOME/.cache/pip:/root/.cache/pip'  // שימוש ב-cache של pip
+                    image 'python:3.9'
+                    args '-v $HOME/.cache/pip:/root/.cache/pip'
                 }
             }
             steps {
@@ -31,18 +31,19 @@ pipeline {
                 axes {
                     axis {
                         name 'PYTHON_VERSION'
-                        values '3.8', '3.9'  // גרסאות Python לבדיקה
+                        values '3.8', '3.9'
                     }
                 }
                 stages {
                     stage('Run Test') {
                         agent {
                             docker {
-                                image "python:${PYTHON_VERSION}"  // גרסה דינמית מה-matrix
-                                reuseNode true  // שימוש חוזר ב-Workspace
+                                image "python:${PYTHON_VERSION}"
+                                reuseNode true
                             }
                         }
                         steps {
+                            sh 'pip install faker'  // התקנת faker בכל גרסה
                             sh 'python app.py'
                         }
                     }
@@ -55,7 +56,7 @@ pipeline {
                 axes {
                     axis {
                         name 'PYTHON_VERSION'
-                        values '3.8', '3.9'  // גרסאות Python לבנייה
+                        values '3.8', '3.9'
                     }
                 }
                 stages {
@@ -75,7 +76,7 @@ pipeline {
                 axes {
                     axis {
                         name 'PYTHON_VERSION'
-                        values '3.8', '3.9'  // גרסאות Python לדחיפה
+                        values '3.8', '3.9'
                     }
                 }
                 stages {
@@ -95,7 +96,7 @@ pipeline {
 
     post {
         always {
-            cleanWs()  // ניקוי ה-Workspace בסוף
+            deleteDir()  // שינוי מ-cleanWs ל-deleteDir
         }
     }
 }
