@@ -2,9 +2,9 @@ pipeline {
     agent any
 
     environment {
-        PYTHON_VERSIONS = '3.8 3.9'
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
-        REPO_NAME = 'nehorai4/python-faker'
+        PYTHON_VERSIONS = '3.8 3.9'  // רשימת גרסאות Python
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')  // Credentials ל-DockerHub
+        REPO_NAME = 'nehorai4/python-faker'  // שם ה-Repository שלך ב-DockerHub
     }
 
     stages {
@@ -96,7 +96,7 @@ pipeline {
 
     post {
         always {
-            deleteDir()  // שינוי מ-cleanWs ל-deleteDir
+            deleteDir()  // ניקוי ה-Workspace בסוף
         }
     }
 }
