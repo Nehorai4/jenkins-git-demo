@@ -1,39 +1,101 @@
 pipeline {
     agent any
+
     environment {
-        MY_NAME = 'Nehorai'
-        IS_DEBUG = 'true'
+        PYTHON_VERSIONS = '3.8 3.9'  // Array של גרסאות Python לבדיקה ובנייה
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')  // DockerHub credentials מתוך Jenkins
+        REPO_NAME = 'nehorai4/python-faker'  // שם ה-Repository שלך ב-DockerHub (תתאים לפי השם שלך)
     }
+
     stages {
-        stage('Say Hello') {
+        stage('Clone') {
             steps {
-                script {
-                    if (env.IS_DEBUG == 'true') {
-                        echo "Hello, ${env.MY_NAME}! Debug mode is ON."
-                    } else {
-                        echo "Hello, ${env.MY_NAME}! Debug mode is OFF."
+                git branch: 'main', url: 'https://github.com/Nehorai4/jenkins-git-demo.git'  // Repository שלך
+            }
+        }
+
+        stage('Install Dependencies') {
+            agent {
+                docker {
+                    image 'python:3.9'  // תמונת Python בסיסית להתקנת תלויות
+                    args '-v $HOME/.cache/pip:/root/.cache/pip'  // שימוש ב-cache של pip
+                }
+            }
+            steps {
+                sh 'pip install faker'
+            }
+        }
+
+        stage('Test Application') {
+            matrix {
+                axes {
+                    axis {
+                        name 'PYTHON_VERSION'
+                        values '3.8', '3.9'  // גרסאות Python לבדיקה
+                    }
+                }
+                stages {
+                    stage('Run Test') {
+                        agent {
+                            docker {
+                                image "python:${PYTHON_VERSION}"  // גרסה דינמית מה-matrix
+                                reuseNode true  // שימוש חוזר ב-Workspace
+                            }
+                        }
+                        steps {
+                            sh 'python app.py'
+                        }
                     }
                 }
             }
         }
-        stage('Get Last Commit') {
-            steps {
-                script {
-                    def commitMsg = sh(script: 'git log -1 --pretty=%B', returnStdout: true).trim()
-                    echo "Last commit message: ${commitMsg}"
+
+        stage('Build Docker Images') {
+            matrix {
+                axes {
+                    axis {
+                        name 'PYTHON_VERSION'
+                        values '3.8', '3.9'  // גרסאות Python לבנייה
+                    }
+                }
+                stages {
+                    stage('Build Image') {
+                        steps {
+                            script {
+                                def image = docker.build("${REPO_NAME}:${PYTHON_VERSION}", "--build-arg PYTHON_VERSION=${PYTHON_VERSION} .")
+                            }
+                        }
+                    }
                 }
             }
         }
-        stage('Approve') {
-            steps {
-                input message: "Do you want to continue, ${env.MY_NAME}?", ok: 'Yes'
+
+        stage('Push to DockerHub') {
+            matrix {
+                axes {
+                    axis {
+                        name 'PYTHON_VERSION'
+                        values '3.8', '3.9'  // גרסאות Python לדחיפה
+                    }
+                }
+                stages {
+                    stage('Push Image') {
+                        steps {
+                            script {
+                                docker.withRegistry('https://index.docker.io/v1/', 'DOCKERHUB_CREDENTIALS') {
+                                    docker.image("${REPO_NAME}:${PYTHON_VERSION}").push()
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
-        stage('Create File') {
-            steps {
-                sh 'echo "File created by ${MY_NAME}" > demo.txt'
-                archiveArtifacts artifacts: 'demo.txt', allowEmptyArchive: true
-            }
+    }
+
+    post {
+        always {
+            cleanWs()  // ניקוי ה-Workspace בסוף
         }
     }
 }
