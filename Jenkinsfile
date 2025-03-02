@@ -3,8 +3,8 @@ pipeline {
 
     environment {
         PYTHON_VERSIONS = '3.8 3.9'
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')  // נשאר אותו דבר
-        REPO_NAME = 'nehorai4/python-faker'
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
+        REPO_NAME = 'nehoraiiii/python-faker'  // תיקון ל-Username שלך
     }
 
     stages {
@@ -83,7 +83,7 @@ pipeline {
                     stage('Push Image') {
                         steps {
                             script {
-                                docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-credentials') {  // שינוי ל-ID ישיר
+                                docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-credentials') {
                                     docker.image("${REPO_NAME}:${PYTHON_VERSION}").push()
                                 }
                             }
