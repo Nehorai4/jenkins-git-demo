@@ -2,9 +2,9 @@ pipeline {
     agent any
 
     environment {
-        PYTHON_VERSIONS = '3.8 3.9'  // רשימת גרסאות Python
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')  // Credentials ל-DockerHub
-        REPO_NAME = 'nehorai4/python-faker'  // שם ה-Repository שלך ב-DockerHub
+        PYTHON_VERSIONS = '3.8 3.9'
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')  // נשאר אותו דבר
+        REPO_NAME = 'nehorai4/python-faker'
     }
 
     stages {
@@ -43,7 +43,7 @@ pipeline {
                             }
                         }
                         steps {
-                            sh 'pip install faker'  // התקנת faker בכל גרסה
+                            sh 'pip install faker'
                             sh 'python app.py'
                         }
                     }
@@ -83,7 +83,7 @@ pipeline {
                     stage('Push Image') {
                         steps {
                             script {
-                                docker.withRegistry('https://index.docker.io/v1/', 'DOCKERHUB_CREDENTIALS') {
+                                docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-credentials') {  // שינוי ל-ID ישיר
                                     docker.image("${REPO_NAME}:${PYTHON_VERSION}").push()
                                 }
                             }
@@ -96,7 +96,7 @@ pipeline {
 
     post {
         always {
-            deleteDir()  // ניקוי ה-Workspace בסוף
+            deleteDir()
         }
     }
 }
